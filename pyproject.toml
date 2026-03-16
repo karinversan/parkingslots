@@ -1,0 +1,59 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "parking-vision-workstation"
+version = "0.1.0"
+description = "Production-style educational project for camera-based parking occupancy detection"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{name = "OpenAI"}]
+dependencies = [
+  "torch>=2.2.0",
+  "torchvision>=0.17.0",
+  "opencv-python>=4.9.0",
+  "numpy>=1.26.0",
+  "pandas>=2.2.0",
+  "PyYAML>=6.0.1",
+  "scikit-learn>=1.4.0",
+  "matplotlib>=3.8.0",
+  "Pillow>=10.2.0",
+  "albumentations>=1.4.0",
+  "huggingface_hub>=0.23.0",
+  "tqdm>=4.66.0",
+  "psutil>=5.9.0",
+  "joblib>=1.3.0",
+  "fastapi>=0.115.0",
+  "uvicorn[standard]>=0.30.0",
+  "jinja2>=3.1.0",
+  "python-multipart>=0.0.9",
+  "streamlit>=1.39.0",
+  "imageio>=2.34.0",
+  "imageio-ffmpeg>=0.5.1"
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0.0", "ruff>=0.5.0", "mypy>=1.10.0"]
+
+[project.scripts]
+pvision-download = "parking_vision.cli:download_main"
+pvision-prepare = "parking_vision.cli:prepare_main"
+pvision-train-model-a = "parking_vision.cli:train_model_a_main"
+pvision-fit-model-b = "parking_vision.cli:fit_model_b_main"
+pvision-evaluate = "parking_vision.cli:evaluate_main"
+pvision-web = "parking_vision.cli:web_main"
+pvision-legacy-web = "parking_vision.cli:legacy_web_main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.package-data]
+parking_vision = ["web/templates/*.html", "web/static/*"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
