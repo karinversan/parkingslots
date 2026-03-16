@@ -1,0 +1,20 @@
+dataset:
+  name: pklot
+  root_dir: data/pklot
+  cache_dir: data/cache/pklot
+  output_manifest: data/manifests/pklot_manifest.csv
+  output_split_dir: data/manifests
+  split_policy: group
+  train_size: 0.70
+  val_size: 0.15
+  test_size: 0.15
+  random_seed: 42
+  source:
+    hf_repo_id: Voxel51/PKLot
+    repo_type: dataset
+  labels:
+    occupied_aliases: ["occupied", "busy", "full", "1", "car"]
+    free_aliases: ["free", "empty", "vacant", "0"]
+  image:
+    size: 224
+    num_workers: 4

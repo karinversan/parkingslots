@@ -1,0 +1,16 @@
+app:
+  host: 0.0.0.0
+  port: 8000
+  reload: false
+  layout_path: configs/camera_layout.example.json
+  output_dir: artifacts/web
+
+models:
+  strong_baseline:
+    type: model_a
+    checkpoint: runs/model_a/latest/best.pt
+    config: configs/model_a_mobilenetv3_mps.yaml
+  fast_classic:
+    type: model_b
+    artifact: runs/model_b/latest/classic_model.joblib
+    config: configs/model_b_classic.yaml

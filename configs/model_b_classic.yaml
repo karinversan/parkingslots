@@ -1,0 +1,30 @@
+experiment_name: model_b_classic
+seed: 42
+device: cpu
+
+data:
+  manifest_train: data/manifests/train.csv
+  manifest_val: data/manifests/val.csv
+  image_size: 160
+  feature_cache_dir: data/cache/model_b_features
+
+model:
+  name: model_b
+  unknown_threshold: 0.15
+  use_logistic_regression: true
+  temporal:
+    background_alpha: 0.03
+    stable_frames: 4
+    occupied_enter_threshold: 0.58
+    occupied_exit_threshold: 0.42
+
+fit:
+  c_values: [0.2, 0.5, 1.0, 2.0, 4.0]
+  class_weight: balanced
+  max_iter: 2000
+  occupied_thresholds: [0.45, 0.5, 0.55, 0.6]
+  unknown_thresholds: [0.05, 0.08, 0.12, 0.15]
+
+paths:
+  run_root: runs/model_b
+  artifact_name: classic_model.joblib

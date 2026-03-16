@@ -1,0 +1,38 @@
+experiment_name: model_a_mobilenet_v3_large_mps
+seed: 42
+device: mps
+
+data:
+  manifest_train: data/manifests/train.csv
+  manifest_val: data/manifests/val.csv
+  image_size: 224
+  batch_size: 64
+  num_workers: 0
+  cache_features: false
+
+model:
+  name: model_a
+  backbone: mobilenet_v3_large
+  num_classes: 3
+  pretrained: true
+  dropout: 0.20
+  unknown_threshold: 0.55
+
+train:
+  epochs: 12
+  lr: 0.0003
+  weight_decay: 0.0001
+  label_smoothing: 0.05
+  mixed_precision: false
+  early_stopping_patience: 4
+
+inference:
+  batch_size: 256
+  smoothing:
+    window_size: 5
+    occupied_enter_threshold: 0.65
+    occupied_exit_threshold: 0.45
+
+paths:
+  run_root: runs/model_a
+  checkpoint_name: best.pt

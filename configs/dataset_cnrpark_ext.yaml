@@ -1,0 +1,19 @@
+dataset:
+  name: cnrpark_ext
+  root_dir: data/cnrpark_ext
+  cache_dir: data/cache/cnrpark_ext
+  output_manifest: data/manifests/cnrpark_ext_manifest.csv
+  output_split_dir: data/manifests
+  split_policy: group
+  train_size: 0.70
+  val_size: 0.15
+  test_size: 0.15
+  random_seed: 42
+  source:
+    url: ""   # optional zip/tar URL; leave empty if dataset already exists locally
+  labels:
+    occupied_aliases: ["occupied", "busy", "full", "1", "car"]
+    free_aliases: ["free", "empty", "vacant", "0"]
+  image:
+    size: 224
+    num_workers: 4
