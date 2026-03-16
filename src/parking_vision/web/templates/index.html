@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Parking Vision Workstation</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body data-theme="light">
+  <div class="page-shell">
+    <header class="topbar">
+      <div class="topbar-copy">
+        <p class="eyebrow">Parking Occupancy Analysis</p>
+        <h1>Parking Vision Workstation</h1>
+        <p class="subtitle">
+          Fixed-camera parking monitoring with two model families: a stronger ROI classifier and a lighter classic baseline.
+          The dashboard separates held-out benchmark quality from the quality signals of the current inference run.
+        </p>
+      </div>
+      <div class="topbar-actions">
+        <span class="hero-pill" id="topEvalScope">{{ evaluation.scope if evaluation else "No evaluation loaded" }}</span>
+        <button class="ghost-btn" id="themeToggle" type="button">Theme</button>
+      </div>
+    </header>
+
+    <main class="layout-grid">
+      <aside class="left-rail sticky">
+        <section class="panel">
+          <div class="panel-head compact">
+            <div>
+              <p class="section-kicker">Workflow</p>
+              <h2>Choose source and model</h2>
+            </div>
+          </div>
+
+          <div id="modelToggle" class="model-toggle"></div>
+          <p id="selectedModelBlurb" class="helper-copy"></p>
+
+          <label for="layoutPath">Camera layout</label>
+          <input id="layoutPath" type="text" value="{{ default_layout_path }}" />
+
+          <div class="tabs" role="tablist" aria-label="Inference sources">
+            <button class="tab-btn active" data-tab="demo" type="button">Demo</button>
+            <button class="tab-btn" data-tab="image" type="button">Image</button>
+            <button class="tab-btn" data-tab="video" type="button">Video</button>
+            <button class="tab-btn" data-tab="stream" type="button">Stream</button>
+          </div>
+
+          <div class="tab-panel active" data-panel="demo">
+            <p class="helper-copy">
+              Pick a prepared demo sample. You can run only the selected model or compare both models on the same media.
+            </p>
+            <div id="demoFeed" class="demo-feed"></div>
+            <input type="hidden" id="selectedDemoId" value="" />
+            <label class="check-row" for="compareDemo">
+              <input id="compareDemo" type="checkbox" />
+              Compare both models on this demo
+            </label>
+            <button class="primary-btn" id="runDemoBtn" type="button">Run prediction</button>
+          </div>
+
+          <div class="tab-panel" data-panel="image">
+            <label for="imageFile">Image file</label>
+            <input id="imageFile" type="file" accept="image/*" />
+            <button class="primary-btn" id="runImageBtn" type="button">Predict image</button>
+          </div>
+
+          <div class="tab-panel" data-panel="video">
+            <label for="videoFile">Video file</label>
+            <input id="videoFile" type="file" accept="video/*" />
+            <div class="mini-grid two">
+              <div>
+                <label for="videoMaxFrames">Max frames</label>
+                <input id="videoMaxFrames" type="number" value="180" min="8" step="1" />
+              </div>
+              <div>
+                <label for="videoStride">Stride</label>
+                <input id="videoStride" type="number" value="5" min="1" step="1" />
+              </div>
+            </div>
+            <button class="primary-btn" id="runVideoBtn" type="button">Predict video</button>
+          </div>
+
+          <div class="tab-panel" data-panel="stream">
+            <label for="streamUrl">RTSP or stream URL</label>
+            <input id="streamUrl" type="text" placeholder="rtsp://..." />
+            <div class="mini-grid two">
+              <div>
+                <label for="streamMaxFrames">Max frames</label>
+                <input id="streamMaxFrames" type="number" value="120" min="8" step="1" />
+              </div>
+              <div>
+                <label for="streamStride">Stride</label>
+                <input id="streamStride" type="number" value="5" min="1" step="1" />
+              </div>
+            </div>
+            <button class="primary-btn" id="runStreamBtn" type="button">Predict stream</button>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head compact">
+            <div>
+              <p class="section-kicker">Model notes</p>
+              <h2>Catalog</h2>
+            </div>
+          </div>
+          <div id="modelCards" class="model-cards"></div>
+        </section>
+      </aside>
+
+      <section class="center-stage">
+        <section class="panel hero-preview">
+          <div class="stage-top">
+            <div>
+              <p class="section-kicker">Current inference</p>
+              <h2 id="runHeadline">No active result</h2>
+              <p id="runSummary" class="subtitle">
+                Select a demo or upload media to inspect the overlay, per-slot statuses, and confidence-driven quality signals.
+              </p>
+            </div>
+            <div class="actions-row">
+              <button class="ghost-btn" id="exportJsonBtn" type="button">Export JSON</button>
+              <button class="ghost-btn" id="exportCsvBtn" type="button">Export CSV</button>
+            </div>
+          </div>
+
+          <div id="previewWrap" class="preview-shell">
+            <div class="preview-empty">
+              <strong>No prediction yet</strong>
+              <span>Pick an input source and run inference.</span>
+            </div>
+          </div>
+
+          <div id="comparisonStrip" class="comparison-strip hidden"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head compact">
+            <div>
+              <p class="section-kicker">Benchmark</p>
+              <h2>Held-out evaluation</h2>
+            </div>
+            <span id="evalBadge" class="inline-badge soft">No evaluation loaded</span>
+          </div>
+          <p id="benchmarkCopy" class="comparison-copy">
+            Benchmark metrics come from a held-out evaluation run. Live inference quality is shown separately in the right rail.
+          </p>
+          <div id="comparisonTableWrap" class="comparison-table-wrap"></div>
+          <div id="comparisonCharts" class="chart-grid"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head compact">
+            <div>
+              <p class="section-kicker">Per-slot output</p>
+              <h2>Slot table</h2>
+            </div>
+            <span class="inline-badge soft">Independent scroll</span>
+          </div>
+          <div class="table-wrap slot-table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Slot</th>
+                  <th>Status</th>
+                  <th>Confidence</th>
+                  <th>Signal</th>
+                </tr>
+              </thead>
+              <tbody id="slotTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+
+      <aside class="right-rail sticky">
+        <section class="panel">
+          <div class="panel-head compact">
+            <div>
+              <p class="section-kicker">Live summary</p>
+              <h2>Current run</h2>
+            </div>
+          </div>
+
+          <div class="stats-grid">
+            <div class="stat-card"><span>Total slots</span><strong id="currentTotal">0</strong></div>
+            <div class="stat-card"><span>Occupied</span><strong id="currentOccupied">0</strong></div>
+            <div class="stat-card"><span>Free</span><strong id="currentFree">0</strong></div>
+            <div class="stat-card"><span>Unknown</span><strong id="currentUnknown">0</strong></div>
+            <div class="stat-card accent"><span>Coverage</span><strong id="currentCoverage">0%</strong></div>
+            <div class="stat-card"><span>Occ. on known</span><strong id="currentOccKnown">0%</strong></div>
+            <div class="stat-card"><span>Latency</span><strong id="currentLatency">0 ms</strong></div>
+            <div class="stat-card"><span>FPS</span><strong id="currentFPS">0.00</strong></div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head compact">
+            <div>
+              <p class="section-kicker">Inference quality</p>
+              <h2>Confidence and risk</h2>
+            </div>
+          </div>
+
+          <div class="kpi-grid">
+            <div class="kpi-card"><span>Mean confidence</span><strong id="currentConfidence">0%</strong></div>
+            <div class="kpi-card"><span>Low-confidence slots</span><strong id="currentLowConfidence">0</strong></div>
+            <div class="kpi-card"><span>Quality band</span><strong id="currentQualityBand">No run</strong></div>
+            <div class="kpi-card"><span>Unknown rate</span><strong id="currentUnknownRate">0%</strong></div>
+          </div>
+
+          <div class="meter-stack">
+            <div>
+              <div class="meter-label-row"><span>Coverage</span><span id="coverageLabel">0%</span></div>
+              <div class="meter"><div id="barCoverage"></div></div>
+            </div>
+            <div>
+              <div class="meter-label-row"><span>Confidence</span><span id="confidenceLabel">0%</span></div>
+              <div class="meter"><div id="barConfidence"></div></div>
+            </div>
+            <div>
+              <div class="meter-label-row"><span>Uncertain slots</span><span id="uncertaintyLabel">0%</span></div>
+              <div class="meter warn"><div id="barUncertainty"></div></div>
+            </div>
+          </div>
+
+          <div class="side-card">
+            <span class="side-label">Interpretation</span>
+            <strong id="qualitySummary">No prediction yet</strong>
+            <p id="qualityNote">Run inference to see coverage, confidence, and uncertainty signals for the current output.</p>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head compact">
+            <div>
+              <p class="section-kicker">Selected model</p>
+              <h2>Benchmark and status</h2>
+            </div>
+          </div>
+          <div id="modelInfoCards" class="model-info-cards"></div>
+        </section>
+      </aside>
+    </main>
+  </div>
+
+  <script>
+    window.__INITIAL_DASHBOARD__ = {{ {
+      "demo_feed": demo_feed,
+      "model_cards": model_cards,
+      "evaluation": evaluation,
+      "models": models,
+      "default_layout_path": default_layout_path,
+    } | tojson }};
+  </script>
+  <script src="/static/app.js"></script>
+</body>
+</html>
