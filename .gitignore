@@ -28,7 +28,7 @@ ENV/
 htmlcov/
 
 # Dataset and raw data
-data/
+/data/
 
 # Model weights and training artifacts
 *.pt
