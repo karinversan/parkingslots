@@ -26,10 +26,6 @@ Camera-based parking occupancy detection from fixed cameras — comparing a Mobi
 <p><img src="media/demo.gif" alt="Demo" /></p>
 > Upload an image or video in the Streamlit dashboard — each slot polygon is colored green (free), red (occupied), or amber (unknown).
 
-```
-http://127.0.0.1:8501
-```
-
 ---
 
 ## Results
